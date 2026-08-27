@@ -283,10 +283,11 @@ class OS
   end
 
   def self.parse_os_release
-    if OS.linux? && File.exist?('/etc/os-release')
+    path = File.exist?('/etc/os-release') ? '/etc/os-release' : '/usr/lib/os-release'
+    if OS.linux? && File.exist?(path)
       output = {}
 
-      File.read('/etc/os-release').each_line do |line|
+      File.read(path).each_line do |line|
         key, value = line.chomp.split('=', 2)
         next unless key =~ /\A[A-Za-z_][A-Za-z_0-9]*\z/ && value
 
@@ -301,7 +302,7 @@ class OS
       end
       output
     else
-      raise "File /etc/os-release doesn't exists or not Linux"
+      raise "File #{path} doesn't exist or not Linux"
     end
   end
 
