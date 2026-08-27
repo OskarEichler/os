@@ -255,7 +255,9 @@ class OS
   end
 
   def self.open_file_command
-    if OS.doze? || OS.cygwin?
+    if OS.cygwin?
+      "cygstart"
+    elsif OS.doze?
       "start"
     elsif OS.mac?
       "open"
