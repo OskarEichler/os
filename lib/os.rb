@@ -1,5 +1,4 @@
 require 'rbconfig'
-require 'yaml'
 
 # a set of friendly files for determining your Ruby runtime
 # treats cygwin as linux
@@ -213,6 +212,7 @@ class OS
 
   # provides easy way to see the relevant config entries
   def self.report
+    require 'yaml'
     relevant_keys = [
       'arch',
       'host',
