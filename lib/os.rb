@@ -235,7 +235,7 @@ class OS
     when /darwin10/
       (hwprefs_available? ? `hwprefs thread_count` : `sysctl -n hw.ncpu`).to_i
     when /linux/
-      `cat /proc/cpuinfo | grep processor | wc -l`.to_i
+      IO.foreach('/proc/cpuinfo').count { |line| line =~ /^processor/ }
     when /freebsd/
       `sysctl -n hw.ncpu`.to_i
     else
