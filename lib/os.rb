@@ -172,7 +172,7 @@ class OS
   class Underlying
 
     def self.bsd?
-      OS.osx?
+      OS.host_os =~ /\A(?:darwin|freebsd|openbsd|netbsd|dragonfly)/ ? true : false
     end
 
     def self.windows?
