@@ -1,4 +1,6 @@
 # encoding: utf-8
+require 'etc'
+
 describe 'OS' do
   it 'identifies whether windows? or posix?' do
     if ENV['OS'] == 'Windows_NT'
@@ -125,6 +127,29 @@ describe 'OS' do
       ENV.delete('NUMBER_OF_PROCESSORS')
       assert OS.cpu_count >= 1
     end
+  end
+
+  it 'counts processors from procfs on otherwise unknown runtimes' do
+    stub_const('RUBY_PLATFORM', 'java')
+    allow(File).to receive(:readable?).with('/proc/cpuinfo').and_return(true)
+    allow(IO).to receive(:foreach).with('/proc/cpuinfo').and_return([
+      "processor\t: 0\n",
+      "vendor_id\t: GenuineIntel\n",
+      "processor\t: 1\n"
+    ])
+
+    assert OS.cpu_count == 2
+  end
+
+  it 'uses Etc when procfs has no processor records' do
+    stub_const('RUBY_PLATFORM', 'java')
+    allow(File).to receive(:readable?).with('/proc/cpuinfo').and_return(true)
+    allow(IO).to receive(:foreach).with('/proc/cpuinfo').and_return([])
+    allow(RbConfig::CONFIG).to receive(:[]).with('host_os').and_return('java')
+    expect(Etc).to receive(:nprocessors).once.and_return(3)
+
+    expect(OS.cpu_count).to eq(3)
+    expect(OS.cpu_count).to eq(3)
   end
 
   it 'should have a start/open command helper' do

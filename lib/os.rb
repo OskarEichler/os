@@ -232,6 +232,11 @@ class OS
       when /freebsd/
         `sysctl -n hw.ncpu`.to_i
       else
+        if File.readable?('/proc/cpuinfo')
+          count = IO.foreach('/proc/cpuinfo').count { |line| line.start_with?('processor') }
+          return @cpu_count = count if count > 0
+        end
+
         if RbConfig::CONFIG['host_os'] =~ /darwin/
           (hwprefs_available? ? `hwprefs thread_count` : `sysctl -n hw.ncpu`).to_i
         elsif windows?
@@ -242,6 +247,10 @@ class OS
           cpu = wmi.ExecQuery('select NumberOfCores from Win32_Processor') # don't count hyper-threaded in this
           cpu.to_enum.first.NumberOfCores
         else
+          require 'etc'
+          count = Etc.nprocessors if Etc.respond_to?(:nprocessors)
+          return @cpu_count = count if count && count > 0
+
           raise 'unknown platform processor_count'
         end
       end
