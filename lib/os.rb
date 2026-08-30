@@ -164,6 +164,13 @@ class OS
         memory_used
       end
     elsif OS.posix? # linux [though I've heard it works in OS X]
+      if OS.linux? && File.readable?('/proc/self/status')
+        File.foreach('/proc/self/status') do |line|
+          match = line.match(/\AVmRSS:\s+(\d+)\s+kB\s*\z/)
+          return match[1].to_i * 1024 if match
+        end
+      end
+
       `ps -o rss= -p #{Process.pid}`.to_i * 1024 # in kiloBytes
     else
       raise 'unknown rss for this platform'
