@@ -108,6 +108,17 @@ describe 'OS' do
     expect(OS.rss_bytes).to eq(1_263_616)
   end
 
+  it 'falls back to ps when procfs becomes unavailable' do
+    allow(OS::Underlying).to receive(:windows?).and_return(false)
+    allow(OS).to receive(:posix?).and_return(true)
+    allow(OS).to receive(:linux?).and_return(true)
+    allow(File).to receive(:readable?).with('/proc/self/status').and_return(true)
+    allow(File).to receive(:foreach).with('/proc/self/status').and_raise(Errno::ENOENT)
+    allow(OS).to receive(:`).with("ps -o rss= -p #{Process.pid}").and_return("42\n")
+
+    expect(OS.rss_bytes).to eq(43_008)
+  end
+
   it 'should tell you what the right /dev/null is' do
     if OS.windows?
       expect(OS.dev_null).to eq('NUL')
